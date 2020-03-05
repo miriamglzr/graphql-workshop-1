@@ -11,6 +11,7 @@ const typeDefs = gql`
 
   type Mutation {
     createUser(data: CreateUserInput!): User!
+    createPost(data: CreatePostInput!): Post!
   }
 
   input CreateUserInput {
@@ -18,6 +19,14 @@ const typeDefs = gql`
     email: String!
     age: Int
     id: ID!
+  }
+
+  input CreatePostInput {
+    title: String!
+    body: String!
+    id: ID!
+    published: Boolean!
+    author: ID!
   }
 
   type User {
@@ -67,6 +76,22 @@ const resolvers = {
       };
       db.users.push(newUser);
       return newUser;
+    },
+
+    createPost(_, { data }) {
+      if (db.users.find(user => data.author === user.id)) {
+        const newPost = {
+          title: data.title,
+          body: data.body,
+          id: data.id,
+          published: data.published,
+          author: data.author
+        };
+        db.posts.push(newPost);
+        return newPost;
+      } else {
+        throw new Error("please provide a valid user");
+      }
     }
   },
 
