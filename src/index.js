@@ -6,7 +6,13 @@ import db from "./db";
 const typeDefs = gql`
   type Query {
     users: [User!]!
+    user(id: ID!): User
     posts: [Post!]!
+    comments: [Comment!]!
+  }
+  type Mutation {
+  #  //createUser(id: ID!, name: String!, email: String!, age: Int): User!*/
+  createUser(data: CreateUserInput)
   }
 
   type User {
@@ -14,6 +20,7 @@ const typeDefs = gql`
     email: String!
     age: Int
     id: ID!
+    posts: [Post!]!
   }
 
   type Post {
@@ -23,6 +30,11 @@ const typeDefs = gql`
     published: Boolean!
     author: User!
   }
+  type Comment {
+    id: ID!
+    text: String!
+    post:
+  }
 `;
 
 const resolvers = {
@@ -31,14 +43,48 @@ const resolvers = {
       return db.users;
     },
 
+    user(_, args) {
+      // _ underscore is a parent but is used when you don't need the info
+      return db.users.find(user => user.id === args.id);
+    },
+
     posts() {
       return db.posts;
+    },
+
+    comments() {
+      return db.comments;
+    }
+  },
+  Mutation: {
+    createUser(_, args) {
+      const newUser = {
+        id: args.id,
+        name: args.name,
+        email: args.email,
+        age: args.age
+      };
     }
   },
 
   Post: {
     author(post) {
       return db.users.find(user => user.id === post.author);
+    }
+  },
+
+  User: {
+    posts(user) {
+      return db.posts.filter(post => post.author === user.id);
+    }
+  },
+  Comment: {
+    post(comment) {
+      return db.posts.find(post => post.id === comment.post);
+    },
+
+    author(comment) {
+      return db.users.find(author => author.id === comment.author);
     }
   }
 };
